@@ -1,6 +1,6 @@
-package io.sohan.paymentgateway;
+package io.sohan.paymentgateway.dto;
 
-public class PaymentOrder {
+public class OrderDto {
     int amount;
 
     public int getAmount() {
