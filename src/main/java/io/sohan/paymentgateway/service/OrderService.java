@@ -1,6 +1,6 @@
 package io.sohan.paymentgateway.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
@@ -13,46 +13,55 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 @Service
 public class OrderService {
-    private OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
     @Value("${Razorpay.keyId}")
     private String key_id;
     @Value("${Razorpay.Secret-key}")
     private String key_secret;
 
 
-    public OrderService(OrderRepository orderRepository) throws RazorpayException {
+    public OrderService(OrderRepository orderRepository) {
         this.orderRepository = orderRepository;
     }
 
-    public void createOrder(@RequestBody OrderDto orderDto) throws RazorpayException {
-
-        RazorpayClient razorpayClient = new RazorpayClient(key_id, key_secret);
-        JSONObject orderRequest = new JSONObject();
-        orderRequest.put("amount", orderDto.getAmount()*100);
-        orderRequest.put("receipt", "order_receiptId_"+Math.random()*(9999-1000)+1000);
-        orderRequest.put("currency", "INR");
-
-        Order order=razorpayClient.Orders.create(orderRequest);
-        System.out.println(order);
-
-
-    }
-    public void save(Order order){
-        Orders orders;
-
-        ObjectMapper objectMapper=new ObjectMapper();
-        orders=objectMapper.convertValue(order,Orders.class);
-    }
-
-    public String getOrder(String id) throws RazorpayException {
-        try{
+    public void createOrder(@RequestBody OrderDto orderDto){
+        try {
             RazorpayClient razorpayClient = new RazorpayClient(key_id, key_secret);
-            Order order=razorpayClient.Orders.fetch(id);
-            return order.toString();
+            JSONObject orderRequest = new JSONObject();
+            orderRequest.put("amount", orderDto.getAmount()*100);
+            orderRequest.put("receipt", "order_receiptId_"+Math.random()*(9999-1000)+1000);
+            orderRequest.put("currency", "INR");
+
+            Order order=razorpayClient.Orders.create(orderRequest);
+            save(order);
+            System.out.println(order);
         }catch (RazorpayException e){
             e.printStackTrace();
 
         }
-        return "failed";
+    }
+
+
+    public Orders getOrder(String id){
+        try{
+            RazorpayClient razorpayClient = new RazorpayClient(key_id, key_secret);
+            Order order=razorpayClient.Orders.fetch(id);
+            return save(order);
+        }catch (RazorpayException e){
+            e.printStackTrace();
+
+        }
+        return null;
+    }
+
+
+    public Orders save(Order order){
+        Gson gson=new Gson();
+        Orders orders=gson.fromJson(order.toString(),Orders.class);
+        if(!orderRepository.existsById(orders.getId())){
+            orderRepository.save(orders);
+        }
+        System.out.println(orders);
+        return orders;
     }
 }
