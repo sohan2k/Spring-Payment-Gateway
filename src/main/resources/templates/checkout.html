@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!-- added for razorpay -->
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+</head>
+<body>
+<div class="container body">
+    <div class="main_container">
+        <div class="alert alert-success" id="pay-success" style="display:none;">
+            <strong>Payment Completed Successfully</strong>
+        </div>
+        <form id="msform">
+            <div class="form-group">
+                <label for="amount">Amount</label>
+                <input type="text" class="form-control" id="amount" name="amount" placeholder="Amount" required="required">
+            </div>
+
+            <button type="button" class="btn btn-primary" id="submit-form">Checkout</button>
+        </form>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<!-- razorpay -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    function doPost(path,reqObj, isAsync){
+        console.log("payment started...");
+        let resp;
+        // let amount=document.getElementById("pay_amount").value;
+        $.ajax({
+            url: path,
+            type: 'POST',
+            data: JSON.stringify(reqObj),
+            contentType: "application/json; charset=UTF-8",
+            async: isAsync,
+            success: function (data) {
+                resp=JSON.parse(data)
+            }
+        });
+        return resp;
+    }
+</script>
+<script>
+    let resp = null;
+
+    var options = {
+        "key": "",
+        "amount": "",
+        "currency": "",
+        "name": "",
+        "description": "",
+        "order_id":"",
+        "image": "https://theovaku.com/wp-content/themes/ovaku-stronger-together/img/banner.jpg",
+        "handler": function (response){
+            alert(response.razorpay_payment_id);
+            $('#pay-success').show();
+        },
+        "prefill": {
+            "name": "",
+            "email": ""
+        },
+        "notes": {
+            "address": "Razorpay Corporate Office"
+        },
+        "theme": {
+            "color": "#3399cc"
+        }
+    };
+    document.getElementById('submit-form').onclick = function(e){
+        var reqObj=$('#msform').serializeArray();
+        // let reqObj=$("#amount").val();
+        console.log(reqObj);
+        var indxReqObj={};
+        $.map(reqObj, function(n, i){
+            indxReqObj[n['name']] = n['value'];
+        });
+
+        resp = doPost("/test/createPayment", indxReqObj, false);
+        console.log(resp);
+        // console.log(resp.orderDto);
+        console.log(resp.amount);
+        // console.log(resp.orders.amount);
+        options.key = 'rzp_test_eoK7OXhNHFWDnP';
+        console.log(options.key);
+        options.order_id = resp.id;
+        options.amount = resp.amount;
+        options.currency=resp.currency;
+        options.name= 'Ovaku Corp';
+        options.description = 'Test payment';
+        options.prefill.name = 'Ovaku';
+        options.prefill.email = 'barmansohan@gmail.com';
+        var rzp1 = new Razorpay(options);
+        rzp1.open();
+        e.preventDefault();
+    }
+</script>
+</body>
+</html>
