@@ -28,7 +28,8 @@ public class OrderService {
         try {
             RazorpayClient razorpayClient = new RazorpayClient(key_id, key_secret);
             JSONObject orderRequest = new JSONObject();
-            orderRequest.put("amount", orderDto.getAmount()*100);
+            int amt=Integer.parseInt(orderDto.getAmount());
+            orderRequest.put("amount", amt*100);
             orderRequest.put("receipt", "order_receiptId_"+Math.random()*(9999-1000)+1000);
             orderRequest.put("currency", "INR");
 
@@ -39,6 +40,25 @@ public class OrderService {
             e.printStackTrace();
 
         }
+    }
+
+    public Orders checkout(@RequestBody OrderDto orderDto){
+        try {
+            RazorpayClient razorpayClient = new RazorpayClient(key_id, key_secret);
+            JSONObject orderRequest = new JSONObject();
+            int amnt=Integer.parseInt(orderDto.getAmount());
+            orderRequest.put("amount", amnt*100);
+            orderRequest.put("receipt", "order_receiptId_"+Math.random()*(9999-1000)+1000);
+            orderRequest.put("currency", "INR");
+
+            Order order=razorpayClient.Orders.create(orderRequest);
+            System.out.println(order);
+            return save(order);
+        }catch (RazorpayException e){
+            e.printStackTrace();
+
+        }
+        return null;
     }
 
 
@@ -60,8 +80,18 @@ public class OrderService {
         Orders orders=gson.fromJson(order.toString(),Orders.class);
         if(!orderRepository.existsById(orders.getId())){
             orderRepository.save(orders);
+//            System.out.println(orders);
+//            return orders;
+        }
+        else if(orderRepository.existsById(orders.getId()) && orders.getStatus()!="created"){
+            Orders orders1=orderRepository.getById(orders.getId());
+            orders1.setStatus(orders.getStatus());
+            orders=orderRepository.save(orders1);
+//            System.out.println(orders1);
+//            return orders1;
         }
         System.out.println(orders);
         return orders;
     }
+
 }
