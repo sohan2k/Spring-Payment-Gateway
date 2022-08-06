@@ -46,7 +46,33 @@
     }
 </script>
 <script>
+    function docheck(path,reqObj,isAsync){
+        console.log("Check started...");
+        let resp;
+        // let amount=document.getElementById("pay_amount").value;
+        $.ajax({
+            url: path,
+            type: 'POST',
+            data: JSON.stringify(reqObj),
+            contentType: "application/json; charset=UTF-8",
+            async: isAsync,
+            success: function (data) {
+                resp=JSON.parse(data);
+                alert("success");
+                //console.log(resp);
+            },
+            error: function (data) {
+                resp=JSON.parse(data);
+                alert("error");
+                //console.log(resp);
+            }
+        });
+        return resp;
+    }
+</script>
+<script>
     let resp = null;
+    let o_id=null;
 
     var options = {
         "key": "",
@@ -59,10 +85,14 @@
         "handler": function (response){
             alert(response.razorpay_payment_id);
             $('#pay-success').show();
+            resp=docheck("/test/checkPayment?id="+options.order_id,response,false);
+            console.log(options.order_id);
+            console.log(resp);
         },
         "prefill": {
             "name": "",
-            "email": ""
+            "email": "",
+            "contact": "9999999999"
         },
         "notes": {
             "address": "Razorpay Corporate Office"
@@ -84,6 +114,7 @@
         console.log(resp);
         // console.log(resp.orderDto);
         console.log(resp.amount);
+        o_id=resp.id;
         // console.log(resp.orders.amount);
         options.key = 'rzp_test_eoK7OXhNHFWDnP';
         console.log(options.key);

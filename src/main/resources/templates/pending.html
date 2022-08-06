@@ -30,7 +30,31 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 <!-- razorpay -->
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
+<script>
+    function docheck(path,reqObj,isAsync){
+        console.log("Check started...");
+        let resp;
+        // let amount=document.getElementById("pay_amount").value;
+        $.ajax({
+            url: path,
+            type: 'POST',
+            data: JSON.stringify(reqObj),
+            contentType: "application/json; charset=UTF-8",
+            async: isAsync,
+            success: function (data) {
+                resp=JSON.parse(data);
+                alert("success");
+                //console.log(resp);
+            },
+            error: function (data) {
+                resp=JSON.parse(data);
+                alert("error");
+                //console.log(resp);
+            }
+        });
+        return resp;
+    }
+</script>
 <script>
     var options = {
         "key": "",
@@ -41,8 +65,11 @@
         "order_id":"",
         "image": "https://theovaku.com/wp-content/themes/ovaku-stronger-together/img/banner.jpg",
         "handler": function (response){
+            console.log(response);
             alert(response.razorpay_payment_id);
             $('#pay-success').show();
+            resp=docheck("/test/checkPayment?id="+options.order_id,response,false);
+            console.log(resp);
         },
         "prefill": {
             "name": "",
@@ -79,6 +106,7 @@
                     options.prefill.email = 'barmansohan@gmail.com';
                     var rzp1 = new Razorpay(options);
                     rzp1.open();
+
                     e.preventDefault();
                 }
                 else {
