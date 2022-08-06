@@ -24,4 +24,6 @@ public class Orders {
     private String status;
     private int attempts;
     private int created_at;
+    private String razorpay_payment_id;
+    private String razorpay_signature;
 }
