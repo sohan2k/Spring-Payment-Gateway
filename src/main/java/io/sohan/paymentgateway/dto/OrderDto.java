@@ -8,5 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderDto {
-    String amount;
+     String name;
+     String email;
+     String contact;
+     String amount;
 }

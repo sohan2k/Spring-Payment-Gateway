@@ -23,6 +23,10 @@ public class CheckoutGateway {
     public String getcheckout() {
         return "checkout";
     }
+    @RequestMapping(value="/checkoutpage")
+    public String getCartCheckout() {
+        return "cart_checkout";
+    }
 
     @RequestMapping(value="/pending")
     public String getTest() {
@@ -33,6 +37,7 @@ public class CheckoutGateway {
     @ResponseBody
     public ResponseEntity<String> checkout(@RequestBody OrderDto amt) {
         Gson gson=new Gson();
+        System.out.println(amt);
         return new ResponseEntity<>(gson.toJson(orderService.checkout(amt)), HttpStatus.OK);
     }
 
