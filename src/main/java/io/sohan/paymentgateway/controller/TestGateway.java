@@ -1,8 +1,10 @@
 package io.sohan.paymentgateway.controller;
 
 import com.google.gson.Gson;
+import com.razorpay.RazorpayException;
 import io.sohan.paymentgateway.dto.OrderDto;
 import io.sohan.paymentgateway.model.Orders;
+import io.sohan.paymentgateway.model.Refunds;
 import io.sohan.paymentgateway.service.OrderService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +43,14 @@ public class TestGateway {
         System.out.println(gson.toJson(orderDto));
         return gson.toJson(orderDto);
     }
+    @PostMapping("/{id}" +
+            "/refund")
+    public Refunds testRefund(@PathVariable String id, @RequestBody OrderDto orderDto) throws RazorpayException {
+        System.out.println(id);
+        System.out.println(orderDto);
+        return orderService.getRefund(id,orderDto);
+    }
+
 
 //    @PostMapping(value="/createPayment")
 //    @ResponseBody
