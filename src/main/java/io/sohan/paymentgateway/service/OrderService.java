@@ -8,7 +8,9 @@ import com.razorpay.RazorpayException;
 import io.sohan.paymentgateway.dto.OrderCheckDto;
 import io.sohan.paymentgateway.dto.OrderDto;
 import io.sohan.paymentgateway.model.Orders;
+import io.sohan.paymentgateway.model.Payments;
 import io.sohan.paymentgateway.repository.OrderRepository;
+import io.sohan.paymentgateway.repository.PaymentRepository;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -16,14 +18,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 @Service
 public class OrderService {
     private final OrderRepository orderRepository;
+    private final PaymentRepository paymentRepository;
     @Value("${Razorpay.keyId}")
     private String key_id;
     @Value("${Razorpay.Secret-key}")
     private String key_secret;
 
+    private  static Gson gson=new Gson();
 
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(OrderRepository orderRepository, PaymentRepository paymentRepository) {
         this.orderRepository = orderRepository;
+        this.paymentRepository = paymentRepository;
     }
 
     public void createOrder(@RequestBody OrderDto orderDto){
@@ -69,12 +74,14 @@ public class OrderService {
         String paymentId = orderCheckDto.getRazorpay_payment_id();
 
         Payment payment = razorpay.Payments.fetch(paymentId);
+        Payments payments=gson.fromJson(payment.toString(),Payments.class);
         System.out.println(payment);
         if(payment.get("status").equals("captured")){
             Orders orders=getOrder(orderCheckDto.getRazorpay_order_id());
             orders.setRazorpay_payment_id(paymentId);
             orders.setRazorpay_signature(orderCheckDto.getRazorpay_signature());
             orderRepository.save(orders);
+            paymentRepository.save(payments);
             System.out.println("success");
         }else {
             System.out.println("failed");
@@ -96,7 +103,7 @@ public class OrderService {
 
 
     public Orders save(Order order){
-        Gson gson=new Gson();
+//        Gson gson=new Gson();
         Orders orders=gson.fromJson(order.toString(),Orders.class);
         if(!orderRepository.existsById(orders.getId())){
             orders=orderRepository.save(orders);
@@ -104,6 +111,9 @@ public class OrderService {
         else if(orderRepository.existsById(orders.getId()) && orders.getStatus()!="created"){
             Orders orders1=orderRepository.getById(orders.getId());
             orders1.setStatus(orders.getStatus());
+            orders1.setAmount_due(orders.getAmount_due());
+            orders1.setAmount_paid(orders.getAmount_paid());
+            orders1.setAttempts(orders.getAttempts());
             orders=orderRepository.save(orders1);
         }
         System.out.println(orders);
